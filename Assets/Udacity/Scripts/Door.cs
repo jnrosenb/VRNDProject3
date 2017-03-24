@@ -4,23 +4,73 @@ using UnityEngine;
 
 public class Door : MonoBehaviour 
 {
-    // Create a boolean value called "locked" that can be checked in OnDoorClicked() 
-    // Create a boolean value called "opening" that can be checked in Update() 
+	
+	[Header("Audio Source")]
+	public AudioSource aSource;
+	public AudioClip[] clips;
 
-    void Update() {
-        // If the door is opening and it is not fully raised
-            // Animate the door raising up
+	[Header("Animator y referencias")]
+	public Animator animator;
+	public GameObject leftDoor;
+	public GameObject rightDoor;
+	 
+	[HideInInspector]public bool locked;
+	[HideInInspector]public bool opening;	
+
+	private bool wideOpen;
+	private float elapsedTime;
+	private Quaternion originL; 
+	private Quaternion goalL; 
+	private Quaternion originR;
+	private Quaternion goalR; 
+
+	void Start()
+	{
+		opening = false;
+		wideOpen = false;
+		elapsedTime = 0;
+
+		locked = true; 
+		aSource.clip = clips [0]; 
+
+		originL = leftDoor.transform.rotation;
+		goalL = originL * Quaternion.Euler (0, 0, 90);
+		originR = rightDoor.transform.rotation;
+		goalR = originR * Quaternion.Euler (0, 0, -90);
+	}
+
+    void Update() 
+	{
+		if (opening && !wideOpen) 
+		{
+			elapsedTime += Time.deltaTime;
+
+			leftDoor.transform.rotation  = Quaternion.Lerp (originL, goalL, elapsedTime);
+			rightDoor.transform.rotation = Quaternion.Lerp (originR, goalR, elapsedTime);
+
+			if (elapsedTime >= 1f)
+				wideOpen = true;
+		} 
+
     }
 
-    public void OnDoorClicked() {
-        // If the door is clicked and unlocked
-            // Set the "opening" boolean to true
-        // (optionally) Else
-            // Play a sound to indicate the door is locked
+    public void OnDoorClicked() 
+	{
+		if (!locked) {
+			aSource.Play ();
+			opening = true;
+			gameObject.layer = 2;
+			//animator.SetBool ("open", true);
+		} 
+		else 
+		{
+			aSource.Play ();
+		}
     }
 
     public void Unlock()
     {
-        // You'll need to set "locked" to false here
+		locked = false;
+		aSource.clip = clips [1];
     }
 }
